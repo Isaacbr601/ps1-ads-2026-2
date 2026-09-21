@@ -1,170 +1,81 @@
-package br.edu.fatecfranca.api.entities;
+package br.edu.fatecfranca.api.controllers;
 
-import java.time.LocalDate;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.util.List;
 
-@Entity
-@Table(name = "customers")
-public class Customer {
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+import br.edu.fatecfranca.api.entities.Customer;
+import br.edu.fatecfranca.api.services.CustomerService;
 
-    @Column(nullable = false)
-    private String name;
+@RestController
+@RequestMapping("/customers")
+public class CustomerController {
 
-    @Column(name = "ident_document", nullable = false, unique = true)
-    private String identDocument;
+    // private final CustomerRepository repository;
 
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
+    // public CustomerController(CustomerRepository repository) {
+    //     this.repository = repository;
+    // }
 
-    @Column(name = "street_name", nullable = false)
-    private String streetName;
+    private final CustomerService service;
 
-    @Column(name = "house_number", nullable = false)
-    private String houseNumber;
-
-    @Column(nullable = true)
-    private String complements;
-
-    @Column(nullable = false)
-    private String district;
-
-    @Column(nullable = false)
-    private String municipality;
-
-   @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(nullable = false, length = 2, columnDefinition = "CHAR(2)")
-    private String state;
-
-    @Column(nullable = false)
-    private String phone;
-
-    @Column(nullable = false, unique = true)
-    private String email;
-
-    public Customer() {
+    public CustomerController(CustomerService service) {
+        this.service = service;
     }
 
-    public Customer(Long id, String name, String identDocument, LocalDate birthDate, String streetName,
-            String houseNumber, String complements, String district, String municipality, String state, String phone,
-            String email) {
-        this.id = id;
-        this.name = name;
-        this.identDocument = identDocument;
-        this.birthDate = birthDate;
-        this.streetName = streetName;
-        this.houseNumber = houseNumber;
-        this.complements = complements;
-        this.district = district;
-        this.municipality = municipality;
-        this.state = state;
-        this.phone = phone;
-        this.email = email;
+    @PostMapping
+    public ResponseEntity<Customer> create(@RequestBody Customer customer) {
+        Customer savedCustomer = service.save(customer);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(savedCustomer);
     }
 
-    public Long getId() {
-        return id;
+    @GetMapping
+    public List<Customer> findAll() {
+        return service.findAll();
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    @GetMapping("/{id}")
+    public ResponseEntity<Customer> findById(@PathVariable Long id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    public String getName() {
-        return name;
+    @PutMapping("/{id}")
+    public ResponseEntity<Customer> update(
+            @PathVariable Long id,
+            @RequestBody Customer customer) {
+
+        if (!service.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        customer.setId(id);
+
+        return ResponseEntity.ok(service.save(customer));
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
 
-    public String getIdentDocument() {
-        return identDocument;
-    }
+        if (!service.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
 
-    public void setIdentDocument(String identDocument) {
-        this.identDocument = identDocument;
-    }
+        service.deleteById(id);
 
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public String getStreetName() {
-        return streetName;
-    }
-
-    public void setStreetName(String streetName) {
-        this.streetName = streetName;
-    }
-
-    public String getHouseNumber() {
-        return houseNumber;
-    }
-
-    public void setHouseNumber(String houseNumber) {
-        this.houseNumber = houseNumber;
-    }
-
-    public String getComplements() {
-        return complements;
-    }
-
-    public void setComplements(String complements) {
-        this.complements = complements;
-    }
-
-    public String getDistrict() {
-        return district;
-    }
-
-    public void setDistrict(String district) {
-        this.district = district;
-    }
-
-    public String getMunicipality() {
-        return municipality;
-    }
-
-    public void setMunicipality(String municipality) {
-        this.municipality = municipality;
-    }
-
-    public String getState() {
-        return state;
-    }
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+        return ResponseEntity.noContent().build();
     }
 }
