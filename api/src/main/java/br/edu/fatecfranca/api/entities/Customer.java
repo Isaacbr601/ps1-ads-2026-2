@@ -1,81 +1,71 @@
-package br.edu.fatecfranca.api.controllers;
+package br.edu.fatecfranca.api.entities;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import br.edu.fatecfranca.api.entities.Customer;
-import br.edu.fatecfranca.api.services.CustomerService;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
-@RestController
-@RequestMapping("/customers")
-public class CustomerController {
+@Entity
+@Table(name = "tb_customer")
+public class Customer {
 
-    // private final CustomerRepository repository;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    // public CustomerController(CustomerRepository repository) {
-    //     this.repository = repository;
-    // }
+    private String name;
 
-    private final CustomerService service;
+    private String email;
 
-    public CustomerController(CustomerService service) {
-        this.service = service;
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("customer")
+    private List<Car> cars;
+
+    public Customer() {
     }
 
-    @PostMapping
-    public ResponseEntity<Customer> create(@RequestBody Customer customer) {
-        Customer savedCustomer = service.save(customer);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(savedCustomer);
+    public Customer(Long id, String name, String email) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
     }
 
-    @GetMapping
-    public List<Customer> findAll() {
-        return service.findAll();
+    public Long getId() {
+        return id;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Customer> findById(@PathVariable Long id) {
-        return service.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Customer> update(
-            @PathVariable Long id,
-            @RequestBody Customer customer) {
-
-        if (!service.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        customer.setId(id);
-
-        return ResponseEntity.ok(service.save(customer));
+    public String getName() {
+        return name;
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public void setName(String name) {
+        this.name = name;
+    }
 
-        if (!service.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    public String getEmail() {
+        return email;
+    }
 
-        service.deleteById(id);
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-        return ResponseEntity.noContent().build();
+    public List<Car> getCars() {
+        return cars;
+    }
+
+    public void setCars(List<Car> cars) {
+        this.cars = cars;
     }
 }
