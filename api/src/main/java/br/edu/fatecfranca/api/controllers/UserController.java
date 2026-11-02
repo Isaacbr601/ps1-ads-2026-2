@@ -1,6 +1,7 @@
 package br.edu.fatecfranca.api.controllers;
 
 import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import br.edu.fatecfranca.api.dtos.UserRequest;
 import br.edu.fatecfranca.api.entities.User;
 import br.edu.fatecfranca.api.services.UserService;
 
@@ -22,12 +25,6 @@ public class UserController {
 
     public UserController(UserService service) {
         this.service = service;
-    }
-
-    @PostMapping
-    public ResponseEntity<User> create(@RequestBody User user) {
-        User savedUser = service.create(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
 
     @GetMapping
@@ -42,13 +39,23 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping
+    public ResponseEntity<User> create(@RequestBody UserRequest request) {
+        User savedUser = service.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<User> update(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<User> update(
+            @PathVariable Long id,
+            @RequestBody UserRequest request) {
+
         if (!service.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        user.setId(id);
-        return ResponseEntity.ok(service.update(user));
+
+        User user = service.update(id, request);
+        return ResponseEntity.ok(user);
     }
 
     @DeleteMapping("/{id}")
