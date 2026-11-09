@@ -19,9 +19,11 @@ public class UserService {
     }
 
     private void copyToEntity(UserRequest request, User user) {
-        user.setName(request.name());
+        user.setFullname(request.fullname());
+        user.setUsername(request.username());
         user.setEmail(request.email());
         user.setPassword(request.password());
+        user.setIsAdmin(Boolean.TRUE.equals(request.isAdmin()));
     }
 
     public List<User> findAll() {
